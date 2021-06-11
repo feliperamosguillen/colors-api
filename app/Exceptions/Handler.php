@@ -2,8 +2,11 @@
 
 namespace App\Exceptions;
 
-use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+use Asm89\Stack\CorsService;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
 class Handler extends ExceptionHandler
 {
@@ -50,6 +53,31 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
-        return parent::render($request, $exception);
+        $response = $this->handleException($request, $exception);
+        app(CorsService::class)->addActualRequestHeaders($response, $request);
+
+        return $response;
+    }
+
+    public function handleException($request, Throwable $exception)
+    {
+        if($exception instanceof \Illuminate\Validation\ValidationException){
+            $errors = $exception->validator->errors()->getMessages();
+            return response()->json(['error' => $errors], 401);
+        }
+
+        if ($exception instanceof NotFoundHttpException) {
+            return $this->errorResponse('entity_not_found', 404);
+        }
+
+        if($exception instanceof JWTException) {
+            return response()->json(['error' => 'not_valid_jwt_token'], 401);
+        }
+
+        if (config('app.debug')) {
+            return parent::render($request, $exception);
+        }
+
+        return response()->json(['error' => 'general_fail'], 500);
     }
 }
