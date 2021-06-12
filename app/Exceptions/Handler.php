@@ -67,7 +67,7 @@ class Handler extends ExceptionHandler
         }
 
         if ($exception instanceof NotFoundHttpException) {
-            return $this->errorResponse('entity_not_found', 404);
+            return response()->json(['error' => 'entity_not_found'], 401);
         }
 
         if($exception instanceof JWTException) {

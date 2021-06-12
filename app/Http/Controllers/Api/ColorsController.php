@@ -22,6 +22,16 @@ class ColorsController extends Controller
     }
 
     /**
+     * Show one color
+    * @param Request $request
+    * @return JsonResponse
+    */
+    public function show(Color $color)
+    {
+        return response()->json($color);
+    }
+
+    /**
     * Create new Color
     * @param Request $request
     * @return JsonResponse
